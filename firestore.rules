@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isChatMember() {
+      return request.auth != null
+        && request.auth.uid in [
+          "PASTE_FIRST_USER_UID_HERE",
+          "PASTE_SECOND_USER_UID_HERE"
+        ];
+    }
+
+    match /chats/private/messages/{messageId} {
+      allow read: if isChatMember();
+      allow create: if isChatMember()
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 4000;
+      allow update, delete: if false;
+    }
+  }
+}
